@@ -5,34 +5,35 @@ const { promisify } = require("util");
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
 
-const readDir = async (from, archive) => {
-  const cylceDir = async (start, archive) => {
+const readDir = async (from, archive, exception) => {
+  const cylceDir = async (start, archive, exception) => {
     try {
       let list = await readdir(start);
 
       for await (const it of list) {
         const targetPath = path.join(start, it);
-        console.log("-> it", it);
+
         const nameForArchive = await pather(targetPath, from);
         const stats = await stat(targetPath);
-
+        if (exception.includes(it)) return null;
         if (stats && stats.isFile()) {
           archive.append(fs.createReadStream(targetPath), {
             name: nameForArchive,
           });
         } else {
-          await cylceDir(targetPath, archive);
+          await cylceDir(targetPath, archive, exception);
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      console.log("-> Error", err);
+    }
   };
 
-  await cylceDir(from, archive);
+  await cylceDir(from, archive, exception);
 };
 
-const zipper = async () => {
-  const from = path.resolve("h:/solutions/node/scanner-to-backup/testfolder");
-  const to = path.resolve("h:/solutions/node/scanner-to-backup/test.zip");
+const zipper = async (from, to, exception) => {
+  if (!from || !to) return null;
   const output = fs.createWriteStream(to);
   const archive = archiver("zip", {
     zlib: { level: 9 },
@@ -40,7 +41,7 @@ const zipper = async () => {
 
   archive.pipe(output);
 
-  await readDir(from, archive);
+  await readDir(from, archive, exception);
   console.log("-> end");
   archive.on("error", function (err) {
     throw err;
@@ -48,7 +49,7 @@ const zipper = async () => {
 
   archive.on("warning", function (err) {
     if (err.code === "ENOENT") {
-      // log warning
+      console.log("-> Warning", err);
     } else {
       // throw error
       throw err;
@@ -75,7 +76,13 @@ const pather = async (target, subtrahend) => {
   }
   return res;
 };
-zipper();
+const nameForArchive = (name) => {};
+const nameArchive = "backup";
+const from = path.resolve("h:/development/silver-shop");
+const to = path.resolve("h:/solutions/node/scanner-to-backup/test.zip");
+const exception = ["node_modules", "self-test"];
+
+zipper(from, to, exception);
 /* const readDir = async (base, target, archive, exception) => {
   try {
     let list = await readdir(base);
