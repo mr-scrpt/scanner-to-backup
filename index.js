@@ -22,24 +22,31 @@ program.parse(process.argv);
   name: "aaa",
 }; */
 
-/* const options = {
+const options = {
   from: path.resolve("h:/solutions/node/scanner-to-backup/testfolder"),
-  to: path.resolve("h:/solutions/node/scanner-to-backup"),
+  to: path.resolve("h:/solutions/node/scanner-to-backup/backup-folder"),
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: "test",
-}; */
+};
 
-const options = {
+/* const options = {
   from: path.resolve("h:/solutions/node/scanner-to-backup/testfolder"),
   to: path.resolve("f:/backup"),
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: "bbb",
-};
+}; */
 
 /* const options = {
   from: path.resolve("d:/Музыка"),
   to: path.resolve("f:/backup"),
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: "музло",
+}; */
+
+/* const options = {
+  from: path.resolve("w:/work-project/promSklad/"),
+  to: path.resolve("f:/backup"),
+  exception: ["node_modules", "self-test"],
+  name: "promsklad",
 }; */
 zipper(options);

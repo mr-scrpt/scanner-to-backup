@@ -2,6 +2,7 @@ const fs = require("fs");
 const archiver = require("archiver");
 const { namer } = require("./namer");
 const { scanner } = require("./scanner");
+const { cleaner } = require("./cleaner");
 const path = require("path");
 const chalk = require("chalk");
 
@@ -21,29 +22,30 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
 
   archive.finalize();
 
-  output.on("close", function () {
+  output.on("close", async () => {
+    console.log("-> TO", to);
     console.log(archive.pointer() + " total bytes");
     console.log(`
       ${chalk.greenBright(
         "⚡⚡⚡ archiver has been finalized and the output file descriptor has closed ⚡⚡⚡"
-      )}
-      ${chalk.blueBright(`Congratulations!`)}
-      
-      `);
+      )}`);
+
     console.timeEnd("zip");
+    console.log(chalk.blackBright("-> Start Clean Dir!"));
+    cleaner(to);
   });
 
   // This event is fired when the data source is drained no matter what was the data source.
   // It is not part of this library but rather from the NodeJS Stream API.
   // @see: https://nodejs.org/api/stream.html#stream_event_end
-  output.on("end", function () {
+  output.on("end", () => {
     console.log("Data has been drained");
   });
-  archive.on("error", function (err) {
+  archive.on("error", (err) => {
     throw err;
   });
 
-  archive.on("warning", function (err) {
+  archive.on("warning", (err) => {
     if (err.code === "ENOENT") {
       console.log("-> Warning", err);
     } else {
@@ -51,13 +53,13 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
     }
   });
 
-  output.on("close", function () {
+  output.on("close", () => {
     console.log(archive.pointer() + " total bytes");
     console.log(
       "archiver has been finalized and the output file descriptor has closed."
     );
   });
-  output.on("end", function () {
+  output.on("end", () => {
     console.log("Data has been drained");
   });
 };
