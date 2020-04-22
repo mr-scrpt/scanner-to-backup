@@ -4,7 +4,7 @@ const archiver = require("archiver");
 const { namer } = require("./namer");
 const { scanner } = require("./scanner");
 const { cleaner } = require("./cleaner");
-//const FTPClient = require("./ftp");
+const FTPClient = require("./ftp");
 const path = require("path");
 const chalk = require("chalk");
 const client = new FTPClient("192.168.0.102", 21, "dolce", "101601630", false);
@@ -35,7 +35,7 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
 
     console.timeEnd("zip");
     console.log(chalk.blackBright("-> Start Clean Dir!"));
-
+    //await client.connect();
     //client.upload(finalDest, "backups/new/test.zip", 777);
     //cleaner(to);
   });
