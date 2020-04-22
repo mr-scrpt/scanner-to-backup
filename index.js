@@ -49,4 +49,12 @@ const options = {
   exception: ["node_modules", "self-test"],
   name: "promsklad",
 }; */
+
+/* const options = {
+  from: path.resolve(program.from),
+  to: path.resolve(program.to),
+  exception: ["node_modules", "self-test", "Бэкапы"],
+  name: program.name,
+}; */
+
 zipper(options);

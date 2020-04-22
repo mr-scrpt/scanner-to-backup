@@ -1,10 +1,13 @@
 const fs = require("fs");
 const archiver = require("archiver");
+
 const { namer } = require("./namer");
 const { scanner } = require("./scanner");
 const { cleaner } = require("./cleaner");
+//const FTPClient = require("./ftp");
 const path = require("path");
 const chalk = require("chalk");
+const client = new FTPClient("192.168.0.102", 21, "dolce", "101601630", false);
 
 module.exports.zipper = async ({ from, to, exception, name }) => {
   if (!from || !to) return null;
@@ -32,7 +35,9 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
 
     console.timeEnd("zip");
     console.log(chalk.blackBright("-> Start Clean Dir!"));
-    cleaner(to);
+
+    //client.upload(finalDest, "backups/new/test.zip", 777);
+    //cleaner(to);
   });
 
   // This event is fired when the data source is drained no matter what was the data source.
