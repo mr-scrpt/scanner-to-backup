@@ -50,16 +50,17 @@ program.parse(process.argv);
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: program.name,
 }; */
-console.log("-> program.temp", path.normalize(program.temp));
+const from = path.normalize(program.from);
+const temp =
+  (program.temp && path.normalize(program.temp)) ||
+  path.normalize(from.slice(0, from.lastIndexOf("\\")));
+
 const options = {
   from: path.normalize(program.from),
   ftpFolder: path.normalize(program.serverFolder),
-  temp:
-    (program.temp && path.normalize(program.temp)) ||
-    path.normalize(program.from),
+  temp: temp,
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: program.name,
 };
 
-console.log("-> options", options);
-//zipper(options);
+zipper(options);
