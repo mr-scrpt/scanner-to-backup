@@ -1,9 +1,12 @@
 const fs = require("fs");
-var Ftp = require("ftp");
+const Ftp = require("ftp");
+const { cleanerFtp } = require("./cleanerFtp");
 const { resolve } = require("path");
+
 class FTPClient {
   constructor({ host, port, user, password }) {
     this.c = new Ftp();
+    this.cleanerFtp = cleanerFtp;
     this.settings = {
       host,
       port,
@@ -42,6 +45,20 @@ class FTPClient {
       });
     });
   };
+  delete = (path) => {
+    return new Promise((resolve, reject) => {
+      if (!path) return null;
+      console.log("-> path", path);
+      this.c.delete(path, (err) => {
+        if (err) {
+          console.log("-> err", err);
+          return reject(err);
+        }
+        console.log("-> Файл удален:", path);
+        return resolve();
+      });
+    });
+  };
   upload = (from, to, name) => {
     return new Promise(async (resolve, reject) => {
       const dest = to + name;
@@ -55,131 +72,43 @@ class FTPClient {
       });
     });
   };
-}
-(async () => {
-  const client = new FTPClient({
-    host: "192.168.0.102",
-    port: "21",
-    user: "dolce",
-    password: "101601630",
-  });
-  await client.connect();
-  await client.upload(
-    "test_21-4-2020.zip",
-    "backups/add/new/file/",
-    "test-new.zip"
-  );
-  await client.disconnect();
-})();
-module.exports = FTPClient;
-/* const ftpClient = new Ftp();
-ftpClient.connect({
-  host: "192.168.0.102",
-  port: "21",
-  user: "dolce",
-  password: "101601630",
-}); */
-/* class FTPClient {
-  constructor(
-    host = "192.168.0.102",
-    port = 21,
-    username = "dolce",
-    password = "101601630",
-    secure = false
-  ) {
-    this.client = new Ftp();
-    this.settings = {
-      host: host,
-      port: port,
-      user: username,
-      password: password,
-      secure: secure,
-    };
-  }
-
-  upload(from, to) {
-    let self = this;
-    async () => {
-      try {
-        self.put(from, to, (err) => {
-          if (err) {
-            return Promise.reject(err);
-          }
-          Promise.resolve(err);
-        });
-      } catch (error) {}
-    };
-  }
-} */
-//(async () => {})
-//var c = new Ftp();
-/* const copyFile = async () => {
-    try {
-      await c.on("ready", function (err) {
-        console.log("-> Redy");
-        Promise.resolve();
-      });
-    } catch (error) {}
-  }; */
-/*  const connect = ({ host, port, user, password }) => {
+  cleaner = (path) => {
     return new Promise((resolve, reject) => {
-      c.connect({
-        host,
-        port,
-        user,
-        password,
-      });
+      this.c.list(path, async (err, list) => {
+        if (err) return reject(err);
 
-      c.on("ready", () => {
-        console.log("-> connect");
-        return resolve();
-      });
-      c.on("error", (err) => {
-        return reject(err);
-      });
-    });
-  };
-  const disconnect = () => {
-    return new Promise((resolve) => {
-      c.end();
-      c.on("end", () => {
-        console.log("-> disconnect");
-        return resolve();
-      });
-    });
-  };
-  const mkdir = (path) => {
-    return new Promise((resolve, reject) => {
-      c.mkdir(path, true, (err) => {
-        if (err) return reject();
-        console.log("-> Путь создан:", path);
-        return resolve();
-      });
-    });
-  };
-  const upload = (from, to, name) => {
-    return new Promise(async (resolve, reject) => {
-      const dest = to + name;
-      await mkdir(to);
-      c.put(fs.createReadStream(from), dest, (err) => {
-        if (err) {
-          return reject();
+        const toDeltetName = await this.cleanerFtp(list);
+
+        if (toDeltetName) {
+          const toDeletePath = `${path}${toDeltetName}`;
+          await this.delete(toDeletePath);
         }
-        console.log("-> Файл записан");
-        return resolve();
+
+        resolve();
       });
     });
   };
+}
+/* (async () => {
   try {
-    await connect({
+    const client = new FTPClient({
       host: "192.168.0.102",
       port: "21",
       user: "dolce",
       password: "101601630",
     });
-    await upload("test_21-4-2020.zip", "backups/add/new/file/", "test-new.zip");
-    await disconnect();
-    console.log("-> then");
+    await client.connect();
+
+   await client.upload(
+      "test_21-4-2020.zip",
+      "backups/add/new/file/",
+      "test-new.zip"
+    ); 
+    await client.cleaner("backups/add/new/file/");
+    
+    await client.disconnect();
   } catch (error) {
     console.log("-> error", error);
-  } */
+  }
+})(); */
+module.exports = FTPClient;

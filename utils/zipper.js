@@ -1,9 +1,8 @@
 const fs = require("fs");
 const archiver = require("archiver");
-
 const { namer } = require("./namer");
 const { scanner } = require("./scanner");
-const { cleaner } = require("./cleaner");
+
 const FTPClient = require("./ftp");
 const path = require("path");
 const chalk = require("chalk");
@@ -18,9 +17,11 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
   const archive = archiver("zip", {
     zlib: { level: 9 },
   });
+  console.log("-> toAchive", toArchive);
+  console.log("-> finalDest", finalDest);
 
   archive.pipe(output);
-  console.time("zip");
+
   await scanner(from, archive, exception);
 
   archive.finalize();
@@ -35,9 +36,10 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
 
     console.timeEnd("zip");
     console.log(chalk.blackBright("-> Start Clean Dir!"));
-    //await client.connect();
-    //client.upload(finalDest, "backups/new/test.zip", 777);
-    //cleaner(to);
+    await client.connect();
+    await client.upload(finalDest, "backups/new/test.zip", 777);
+    await client.cleaner("backups/new/");
+    await client.disconnect();
   });
 
   // This event is fired when the data source is drained no matter what was the data source.
