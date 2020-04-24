@@ -4,8 +4,9 @@ const { zipper } = require("./utils/zipper");
 
 program
   .option("-f, --from <from>", "расположение файлов", "")
-  .option("-t, --to <to>", "куда перенести файлы?", "")
-  .option("-n, --name <name>", "Удалять исходники?", "backup");
+  .option("-n, --name <name>", "Имя для архива", "backup")
+  .option("-s, --serverFolder <serverFolder>", "Имя папки на сервере", "other")
+  .option("-t, --temp <temp>", "Временная дериктория", "");
 program.parse(process.argv);
 
 /* const options = {
@@ -21,13 +22,6 @@ program.parse(process.argv);
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: "aaa",
 }; */
-
-const options = {
-  from: path.resolve("h:/solutions/node/scanner-to-backup/testfolder"),
-  to: path.resolve("h:/solutions/node/scanner-to-backup/backup-folder"),
-  exception: ["node_modules", "self-test", "Бэкапы"],
-  name: "test",
-};
 
 /* const options = {
   from: path.resolve("h:/solutions/node/scanner-to-backup/testfolder"),
@@ -56,5 +50,16 @@ const options = {
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: program.name,
 }; */
+console.log("-> program.temp", path.normalize(program.temp));
+const options = {
+  from: path.normalize(program.from),
+  ftpFolder: path.normalize(program.serverFolder),
+  temp:
+    (program.temp && path.normalize(program.temp)) ||
+    path.normalize(program.from),
+  exception: ["node_modules", "self-test", "Бэкапы"],
+  name: program.name,
+};
 
-zipper(options);
+console.log("-> options", options);
+//zipper(options);

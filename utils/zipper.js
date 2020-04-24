@@ -8,17 +8,17 @@ const path = require("path");
 const chalk = require("chalk");
 const client = new FTPClient("192.168.0.102", 21, "dolce", "101601630", false);
 
-module.exports.zipper = async ({ from, to, exception, name }) => {
-  if (!from || !to) return null;
+module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
+  if (!from || !temp) return null;
 
   const toArchive = namer(name);
-  const finalDest = path.resolve(to, toArchive);
+  const finalDest = path.resolve(temp, toArchive);
+  const ftpPathToFolder = path.resolve(`backups/${ftpFolder}`);
+  const ftpPathToArchive = path.resolve(`${ftpPathToFolder}/${toArchive}`);
   const output = fs.createWriteStream(finalDest);
   const archive = archiver("zip", {
     zlib: { level: 9 },
   });
-  console.log("-> toAchive", toArchive);
-  console.log("-> finalDest", finalDest);
 
   archive.pipe(output);
 
@@ -27,7 +27,6 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
   archive.finalize();
 
   output.on("close", async () => {
-    console.log("-> TO", to);
     console.log(archive.pointer() + " total bytes");
     console.log(`
       ${chalk.greenBright(
@@ -36,10 +35,12 @@ module.exports.zipper = async ({ from, to, exception, name }) => {
 
     console.timeEnd("zip");
     console.log(chalk.blackBright("-> Start Clean Dir!"));
-    await client.connect();
-    await client.upload(finalDest, "backups/new/test.zip", 777);
-    await client.cleaner("backups/new/");
-    await client.disconnect();
+    console.log("-> ftpPathToArchive", ftpPathToArchive);
+    console.log("-> ftpPathToFolder");
+    /* await client.connect();
+    await client.upload(finalDest, ftpPathToArchive, 777);
+    await client.cleaner(ftpPathToFolder);
+    await client.disconnect(); */
   });
 
   // This event is fired when the data source is drained no matter what was the data source.
