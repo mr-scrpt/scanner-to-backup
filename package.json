@@ -8,5 +8,8 @@
     "basic-ftp": "^4.5.4",
     "chalk": "^4.0.0",
     "ftp": "^0.3.10"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
   }
 }

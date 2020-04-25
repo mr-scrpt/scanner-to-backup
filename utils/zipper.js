@@ -19,11 +19,11 @@ module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
   if (!from || !temp) return null;
 
   const toArchive = namer(name);
-  console.log("-> NAME!!!!!!!!", name);
+
   const finalDest = path.normalize(`${temp}/${toArchive}`);
-  console.log("-> final dest", finalDest);
+
   const ftpPathToFolder = path.normalize(`backups/${ftpFolder}/`);
-  console.log("-> FTP FOLDER", ftpPathToFolder);
+
   const ftpPathToArchive = path.normalize(`${ftpPathToFolder}/${toArchive}`);
   const output = fs.createWriteStream(finalDest);
   const archive = archiver("zip", {
@@ -79,15 +79,5 @@ module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
     } else {
       throw err;
     }
-  });
-
-  output.on("close", () => {
-    console.log(archive.pointer() + " total bytes");
-    console.log(
-      "archiver has been finalized and the output file descriptor has closed."
-    );
-  });
-  output.on("end", () => {
-    console.log("Data has been drained");
   });
 };

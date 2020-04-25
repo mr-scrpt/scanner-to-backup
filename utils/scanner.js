@@ -33,6 +33,7 @@ module.exports.scanner = async (from, archive, exception) => {
               });
             });
           } else {
+            console.log("-> Папка", it);
             await cylceDir(targetPath, archive, exception);
           }
         }

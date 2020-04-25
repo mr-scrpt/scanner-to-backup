@@ -1,7 +1,6 @@
 const fs = require("fs");
 const Ftp = require("ftp");
 const { cleanerFtp } = require("./cleanerFtp");
-const { resolve } = require("path");
 
 class FTPClient {
   constructor({ host, port, user, password }) {
