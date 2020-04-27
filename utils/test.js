@@ -6,17 +6,18 @@ const stats = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
 const { pather } = require("./pather");
 const chalk = require("chalk");
-
-const { scanner } = require("./scanner"); //TODO преписать в класс
+const ProgressBar = require("progress");
 const { namer } = require("./namer"); //TODO преписать в класс
+
 class Compresser {
   constructor({ from, temp, exception, name, ftpFolder }) {
     this.c = new Archiver("zip", {
       zlib: { level: 9 },
     });
+    this.b;
     this.settings = {
-      from,
-      temp,
+      from: path.normalize(from),
+      temp: path.normalize(temp),
       exception,
       name, //??
       ftpFolder, //??
@@ -24,69 +25,63 @@ class Compresser {
     this.archiveName = namer(name);
     this.remoteFolder = path.normalize(`backups/${ftpFolder}/`);
     this.localDest = path.normalize(`${temp}/${this.archiveName}`);
-    this.counterFile = 0;
-    this.counterFolder = 0;
+    this.counterFileTotal = 0;
+    this.counterFolderTotal = 0;
+    this.counterFileReady = 0;
+    this.arrayPath = [];
   }
-
-  //remoteFolder = path.normalize(`backups/${ftpFolder}/`);
 
   compress = () =>
     new Promise(async (resolve, reject) => {
-      const { from, archive, exception } = this.settings;
-      this.c.pipe(fs.createWriteStream(this.localDest));
-      await this.scanner(from, this.c, exception);
-      this.c.finalize();
-    });
-  scanner = (start, compressor, exception) => {
-    return new Promise(async (resolve, reject) => {
       try {
-        await this.cylceDir(start, compressor, exception);
+        const { from, exception } = this.settings;
+        this.c.pipe(fs.createWriteStream(this.localDest));
+        await this.scanner(from, exception);
+        this.b = new ProgressBar(
+          "Всего файлов :total. Завершено :percent [:bar] Прошло :elapsed секунд",
+          {
+            total: this.counterFileTotal,
+          }
+        );
+        for await (const it of this.arrayPath) {
+          const name = await pather(it, from);
+
+          const readStream = fs.createReadStream(it);
+          this.c.append(readStream, { name });
+
+          await new Promise((resolve) => {
+            readStream.on("close", () => {
+              this.b.tick({
+                name: name,
+              });
+              resolve();
+            });
+          });
+        }
+        this.c.finalize();
         return resolve();
-      } catch (error) {
-        return reject(error);
+      } catch (err) {
+        return reject();
       }
     });
-  };
-  cylceDir = async (start, compressor, exception) => {
+
+  scanner = async (start, exception) => {
     return new Promise(async (resolve, reject) => {
       try {
         const list = await readdir(start);
         for await (const it of list) {
           const item = path.join(start, it);
-          const name = await pather(item, start);
           const info = await stats(item);
 
           if (exception.includes(it)) {
             console.log(`Исключение ${chalk.redBright(item)}`);
             Promise.resolve();
           } else if (info && info.isFile()) {
-            const readStream = fs.createReadStream(item);
-
-            compressor.append(readStream, { name });
-
-            await new Promise((resolve) => {
-              readStream.on("close", () => {
-                this.counterFile++;
-                console.log(
-                  `Файл ${chalk.yellowBright(
-                    item
-                  )} добавлен в архив. Всего файлов обработано ${chalk.greenBright(
-                    this.counterFile
-                  )}`
-                );
-                resolve();
-              });
-            });
+            this.counterFileTotal++;
+            this.arrayPath.push(item);
           } else {
-            this.counterFolder++;
-            console.log(
-              `Обработка папки ${chalk.yellowBright(
-                item
-              )}. Всего папок обработано ${chalk.greenBright(
-                this.counterFolder
-              )}`
-            );
-            await this.cylceDir(item, compressor, exception);
+            this.counterFolderTotal++;
+            await this.scanner(item, exception);
           }
         }
         return resolve();
@@ -95,14 +90,19 @@ class Compresser {
       }
     });
   };
+  /*  processStatus = (total, ready) => {
+    return Math.round((ready / total) * 100);
+  }; */
 }
+
 const options = {
   from: "h:/solutions/node/scanner-to-backup/testfolder",
   ftpFolder: "backup/folderToBackUp",
   temp: "h:/solutions/node/scanner-to-backup",
   exception: ["node_modules", "self-test", "Бэкапы"],
-  name: "backup_name",
+  name: "backup_name1",
 };
 const compressor = new Compresser(options);
 
 compressor.compress();
+//console.log("-> res", compressor.arrayPath);

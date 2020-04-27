@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "commander": "^3.0.2",
-    "node-stream-zip": "^1.9.1"
+    "node-stream-zip": "^1.9.1",
+    "progress": "^2.0.3"
   },
   "devDependencies": {
     "archiver": "^4.0.1",
