@@ -3,7 +3,7 @@ const { promisify } = require("util");
 const unlink = promisify(fs.unlink);
 const archiver = require("archiver");
 const { namer } = require("./namer");
-const { scanner } = require("./scanner");
+//const { scanner } = require("./scanner");
 
 const FTPClient = require("./ftp");
 const path = require("path");
@@ -14,8 +14,34 @@ const client = new FTPClient({
   user: "dolce",
   password: "101601630",
 });
+// ===========
 
-module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
+const Scanner = require("./scannerClass");
+const Compressor = require("./compressor");
+const options = {
+  from: "h:/solutions/node/scanner-to-backup/testfolder",
+  ftpFolder: "backup/folderToBackUp",
+  temp: "h:/solutions/node/scanner-to-backup",
+  exception: ["node_modules", "self-test", "Бэкапы"],
+  name: "backup_name1",
+};
+
+(async () => {
+  const scanner = new Scanner(options.from, options.exception);
+
+  const list = await scanner.scann(options.from, options.exception);
+  //console.log("-> list", list);
+  const compressor = new Compressor(
+    list,
+    "h:/solutions/node/scanner-to-backup",
+    "test-b"
+  );
+
+  await compressor.compress();
+  //console.log("-> list", list);
+})();
+
+/* module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
   if (!from || !temp) return null;
 
   const toArchive = namer(name);
@@ -81,3 +107,4 @@ module.exports.zipper = async ({ from, temp, exception, name, ftpFolder }) => {
     }
   });
 };
+ */

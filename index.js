@@ -50,6 +50,8 @@ program.parse(process.argv);
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: program.name,
 }; */
+
+// ============
 const from = path.normalize(program.from);
 const temp =
   (program.temp && path.normalize(program.temp)) ||
@@ -61,6 +63,15 @@ const options = {
   temp: temp,
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: program.name,
+};
+// =========
+
+const options = {
+  from: "h:/solutions/node/scanner-to-backup/testfolder",
+  ftpFolder: "backup/folderToBackUp",
+  temp: "h:/solutions/node/scanner-to-backup",
+  exception: ["node_modules", "self-test", "Бэкапы"],
+  name: "backup_name1",
 };
 
 zipper(options);

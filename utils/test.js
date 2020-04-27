@@ -1,20 +1,21 @@
 const fs = require("fs");
 const path = require("path");
 const Archiver = require("archiver");
+const Bar = require("./progressBar");
 const { promisify } = require("util");
 const stats = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
 const { pather } = require("./pather");
 const chalk = require("chalk");
-const ProgressBar = require("progress");
+
 const { namer } = require("./namer"); //TODO преписать в класс
 
-class Compresser {
+class Compressor {
   constructor({ from, temp, exception, name, ftpFolder }) {
     this.c = new Archiver("zip", {
       zlib: { level: 9 },
     });
-    this.b;
+
     this.settings = {
       from: path.normalize(from),
       temp: path.normalize(temp),
@@ -23,11 +24,10 @@ class Compresser {
       ftpFolder, //??
     };
     this.archiveName = namer(name);
+    this.bar;
     this.remoteFolder = path.normalize(`backups/${ftpFolder}/`);
     this.localDest = path.normalize(`${temp}/${this.archiveName}`);
     this.counterFileTotal = 0;
-    this.counterFolderTotal = 0;
-    this.counterFileReady = 0;
     this.arrayPath = [];
   }
 
@@ -37,12 +37,9 @@ class Compresser {
         const { from, exception } = this.settings;
         this.c.pipe(fs.createWriteStream(this.localDest));
         await this.scanner(from, exception);
-        this.b = new ProgressBar(
-          "Всего файлов :total. Завершено :percent [:bar] Прошло :elapsed секунд",
-          {
-            total: this.counterFileTotal,
-          }
-        );
+
+        this.bar = new Bar(this.counterFileTotal);
+
         for await (const it of this.arrayPath) {
           const name = await pather(it, from);
 
@@ -51,9 +48,7 @@ class Compresser {
 
           await new Promise((resolve) => {
             readStream.on("close", () => {
-              this.b.tick({
-                name: name,
-              });
+              this.bar.tick(it);
               resolve();
             });
           });
@@ -65,7 +60,7 @@ class Compresser {
       }
     });
 
-  scanner = async (start, exception) => {
+  /* scanner = async (start, exception) => {
     return new Promise(async (resolve, reject) => {
       try {
         const list = await readdir(start);
@@ -80,7 +75,6 @@ class Compresser {
             this.counterFileTotal++;
             this.arrayPath.push(item);
           } else {
-            this.counterFolderTotal++;
             await this.scanner(item, exception);
           }
         }
@@ -89,9 +83,6 @@ class Compresser {
         return reject(err);
       }
     });
-  };
-  /*  processStatus = (total, ready) => {
-    return Math.round((ready / total) * 100);
   }; */
 }
 
@@ -102,7 +93,6 @@ const options = {
   exception: ["node_modules", "self-test", "Бэкапы"],
   name: "backup_name1",
 };
-const compressor = new Compresser(options);
+const compressor = new Compressor(options);
 
 compressor.compress();
-//console.log("-> res", compressor.arrayPath);
