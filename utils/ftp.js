@@ -67,6 +67,7 @@ class FTPClient {
     return new Promise(async (resolve, reject) => {
       const dest = to + name;
       await this.mkdir(to);
+      console.log("-> to in upload", to);
       const stream = fs.createReadStream(from);
 
       this.cheсkFile(from, stream);
