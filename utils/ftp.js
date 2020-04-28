@@ -1,6 +1,10 @@
 const fs = require("fs");
+const { promisify } = require("util");
+const stat = promisify(fs.stat);
 const Ftp = require("ftp");
 const { cleanerFtp } = require("./cleanerFtp");
+const chalk = require("chalk");
+const ProgressBar = require("progress");
 
 class FTPClient {
   constructor({ host, port, user, password }) {
@@ -18,7 +22,7 @@ class FTPClient {
       this.c.connect(this.settings);
 
       this.c.on("ready", () => {
-        console.log("-> connect");
+        console.log(chalk.blueBright("⛓ Успешно подключен к FTP ⛓"));
         return resolve();
       });
       this.c.on("error", (err) => {
@@ -30,7 +34,7 @@ class FTPClient {
     return new Promise((resolve) => {
       this.c.end();
       this.c.on("end", () => {
-        console.log("-> disconnect");
+        console.log(chalk.magentaBright("⛓ Успешно отключен к FTP ⛓"));
         return resolve();
       });
     });
@@ -39,7 +43,8 @@ class FTPClient {
     return new Promise((resolve, reject) => {
       this.c.mkdir(path, true, (err) => {
         if (err) return reject();
-        console.log("-> Путь создан:", path);
+
+        console.log(chalk.cyanBright("Путь создан:", path));
         return resolve();
       });
     });
@@ -62,11 +67,15 @@ class FTPClient {
     return new Promise(async (resolve, reject) => {
       const dest = to + name;
       await this.mkdir(to);
-      this.c.put(fs.createReadStream(from), dest, (err) => {
+      const stream = fs.createReadStream(from);
+
+      this.cheсkFile(from, stream);
+
+      this.c.put(stream, dest, (err) => {
         if (err) {
           return reject();
         }
-        console.log("-> Файл записан");
+        console.log(chalk.greenBright("⚡⚡⚡Файл успешно отправлен!⚡⚡⚡"));
         return resolve();
       });
     });
@@ -87,27 +96,28 @@ class FTPClient {
       });
     });
   };
-}
-/* (async () => {
-  try {
-    const client = new FTPClient({
-      host: "192.168.0.102",
-      port: "21",
-      user: "dolce",
-      password: "101601630",
+  cheсkFile = async (file, stream) => {
+    const stats = await stat(file);
+    const len = parseInt(stats.size, 10);
+    const sizeOnMb = (stats.size / 1024 ** 2).toFixed(0);
+    let senden = 0;
+    const bar = new ProgressBar(
+      "⏩ Завершено :ready mb из :sizeOnMb mb (:percent) [:bar] Прошло :elapsed секунд.",
+      {
+        complete: "=",
+        incomplete: " ",
+        width: 40,
+        total: len,
+      }
+    );
+    stream.on("data", (chunk) => {
+      senden += chunk.length / 1024 / 1024;
+      bar.tick(chunk.length, {
+        ready: senden.toFixed(0),
+        sizeOnMb,
+      });
     });
-    await client.connect();
+  };
+}
 
-   await client.upload(
-      "test_21-4-2020.zip",
-      "backups/add/new/file/",
-      "test-new.zip"
-    ); 
-    await client.cleaner("backups/add/new/file/");
-    
-    await client.disconnect();
-  } catch (error) {
-    console.log("-> error", error);
-  }
-})(); */
 module.exports = FTPClient;

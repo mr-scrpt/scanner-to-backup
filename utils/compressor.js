@@ -38,7 +38,7 @@ module.exports = class Compressor {
           });
         }
         this.c.finalize();
-        return resolve();
+        return resolve({ path: this.localDest, name: this.nameFinal });
       } catch (err) {
         return reject();
       }

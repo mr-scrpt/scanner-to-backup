@@ -13,7 +13,7 @@ module.exports = class Scanner {
   };
   iteration = 0;
   stream = process.stderr;
-
+  lastDraw = "";
   scann = async (start, exception) => {
     if (this.iteration === 0) {
       this.list.base = path.normalize(start);
@@ -31,13 +31,14 @@ module.exports = class Scanner {
             Promise.resolve();
           } else if (info && info.isFile()) {
             this.list.total++;
-            this.list.path.push(item);
-            this.stream.cursorTo(0);
-            this.stream.write(
+
+            const message =
               chalk.yellowBright(`Оценка файловой системы. Файлов найдено `) +
-                chalk.greenBright(`${this.list.total}`)
-            );
-            this.stream.clearLine(1);
+              chalk.greenBright(`${this.list.total}`);
+            this.list.path.push(item);
+            this.stream.clearLine();
+            this.stream.cursorTo(0);
+            this.stream.write(message);
           } else {
             await this.scann(item, exception);
           }
