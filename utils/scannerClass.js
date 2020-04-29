@@ -12,8 +12,8 @@ module.exports = class Scanner {
     path: [],
   };
   iteration = 0;
-  stream = process.stderr;
-  lastDraw = "";
+  /*  stream = process.stderr;
+  lastDraw = ""; */
   scann = async (start, exception) => {
     if (this.iteration === 0) {
       this.list.base = path.normalize(start);
@@ -36,9 +36,9 @@ module.exports = class Scanner {
               chalk.yellowBright(`Оценка файловой системы. Файлов найдено `) +
               chalk.greenBright(`${this.list.total}`);
             this.list.path.push(item);
-            this.stream.clearLine();
+            /* this.stream.clearLine(0);
             this.stream.cursorTo(0);
-            this.stream.write(message);
+            this.stream.write(message); */
           } else {
             await this.scann(item, exception);
           }

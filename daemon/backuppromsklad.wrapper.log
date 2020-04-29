@@ -1,0 +1,4 @@
+2020-04-28 20:47:14 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 H:\solutions\node\scanner-to-backup\node_modules\node-windows\lib\wrapper.js --file H:\solutions\node\scanner-to-backup\promsklad.js --scriptoptions= --log "Backup promsklad wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2020-04-28 20:47:14 - Started 18828
+2020-04-28 20:48:20 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 H:\solutions\node\scanner-to-backup\node_modules\node-windows\lib\wrapper.js --file H:\solutions\node\scanner-to-backup\promsklad.js --scriptoptions= --log "Backup promsklad wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2020-04-28 20:48:20 - Started 13892

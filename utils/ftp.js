@@ -10,6 +10,7 @@ class FTPClient {
   constructor({ host, port, user, password }) {
     this.c = new Ftp();
     this.cleanerFtp = cleanerFtp;
+    this.bar;
     this.settings = {
       host,
       port,
@@ -102,7 +103,7 @@ class FTPClient {
     const len = parseInt(stats.size, 10);
     const sizeOnMb = (stats.size / 1024 ** 2).toFixed(0);
     let senden = 0;
-    const bar = new ProgressBar(
+    this.bar = new ProgressBar(
       "⏩ Завершено :ready mb из :sizeOnMb mb (:percent) [:bar] Прошло :elapsed секунд.",
       {
         complete: "=",
@@ -113,7 +114,7 @@ class FTPClient {
     );
     stream.on("data", (chunk) => {
       senden += chunk.length / 1024 / 1024;
-      bar.tick(chunk.length, {
+      this.bar.tick(chunk.length, {
         ready: senden.toFixed(0),
         sizeOnMb,
       });

@@ -3,7 +3,9 @@ const path = require("path");
 const Archiver = require("archiver");
 const { namer } = require("./namer");
 const { pather } = require("./pather");
-const Bar = require("./progressBar");
+const chalk = require("chalk");
+
+const ProgressBar = require("progress");
 
 module.exports = class Compressor {
   constructor(list, localDest, name) {
@@ -23,7 +25,18 @@ module.exports = class Compressor {
     new Promise(async (resolve, reject) => {
       try {
         this.c.pipe(fs.createWriteStream(this.localDest));
-        this.bar = new Bar(this.total);
+        this.bar = new ProgressBar(
+          "⏩ Завершено :percent [:bar] Прошло :elapsed секунд. ", //Файлов: :total. Текущий [:name]
+          {
+            total: this.total,
+            complete: "=",
+            incomplete: " ",
+            width: 40,
+            callback: () => {
+              console.log(chalk.greenBright("⚡⚡⚡Архив создан!⚡⚡⚡"));
+            },
+          }
+        );
 
         for await (const it of this.list) {
           const to = await pather(it, this.base);
@@ -32,7 +45,7 @@ module.exports = class Compressor {
 
           await new Promise((resolve) => {
             readStream.on("close", () => {
-              this.bar.tick(it);
+              this.bar.tick({ name: it });
               resolve();
             });
           });
